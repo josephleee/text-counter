@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>글자수 세기 - 실시간 글자수 계산기</title>
+  <meta name="description" content="무료 실시간 글자수 세기 도구. 네이버 블로그, 인스타그램, 트위터, SMS 글자수 제한 확인. 한글/영문 단어수, 문장수, 읽기 시간 계산.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 300;
+      background: #0d253d;
+      color: #f8f9fa;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    a { color: #8ab4f8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ===== HERO MESH ===== */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 3rem 1rem 2.5rem;
+      text-align: center;
+      background: radial-gradient(ellipse 80% 60% at 30% 20%, rgba(83,58,253,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse 60% 50% at 70% 80%, rgba(83,58,253,0.10) 0%, transparent 50%),
+                  linear-gradient(160deg, #0d253d 0%, #112a44 40%, #0d253d 100%);
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(83,58,253,0.06) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .hero * { position: relative; z-index: 1; }
+    .hero h1 {
+      font-weight: 600;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      font-weight: 300;
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+      color: #9aa0b5;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* ===== LAYOUT ===== */
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem 0 3rem;
+    }
+    @media (min-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr 300px;
+      }
+    }
+
+    /* ===== AD PLACEHOLDERS ===== */
+    .ad-placeholder {
+      background: rgba(255,255,255,0.04);
+      border: 1px dashed rgba(255,255,255,0.10);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b7280;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    .ad-header {
+      width: 100%;
+      max-width: 728px;
+      height: 90px;
+      margin: 0 auto 0.5rem;
+    }
+    .ad-sidebar {
+      width: 100%;
+      max-width: 300px;
+      height: 250px;
+      margin: 0 auto;
+    }
+    @media (max-width: 899px) {
+      .ad-sidebar { max-width: 100%; height: 120px; }
+    }
+
+    /* ===== TOOL CARD ===== */
+    .tool-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 1.5rem;
+    }
+    @media (min-width: 600px) {
+      .tool-card { padding: 2rem; }
+    }
+
+    /* ===== TEXTAREA ===== */
+    .textarea-wrapper {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .tool-textarea {
+      width: 100%;
+      min-height: 240px;
+      padding: 1rem 1rem 2.5rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #f8f9fa;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .tool-textarea::placeholder { color: #5a6278; }
+    .tool-textarea:focus { border-color: #533afd; }
+
+    /* ===== CHAR LIMIT BAR ===== */
+    .char-limit-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.78rem;
+      color: #8a92a8;
+    }
+    .char-limit-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .char-limit-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ===== STATS GRID ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .stat-card {
+      background: rgba(0,0,0,0.2);
+      border-radius: 14px;
+      padding: 0.85rem 1rem;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: #8a92a8;
+      margin-top: 0.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+    .stat-label svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ===== ACTION ROW ===== */
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.2rem;
+      border: none;
+      border-radius: 9999px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn svg { width: 18px; height: 18px; }
+    .btn-primary {
+      background: #533afd;
+      color: #fff;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #d0d5e0;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+
+    /* ===== CASE CONVERTER ===== */
+    .case-converter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .case-btn {
+      padding: 0.4rem 0.9rem;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 9999px;
+      background: transparent;
+      color: #b0b8cc;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .case-btn:hover {
+      border-color: #533afd;
+      color: #fff;
+    }
+    .case-btn.active {
+      background: #533afd;
+      border-color: #533afd;
+      color: #fff;
+    }
+
+    /* ===== TEXT STATS EXTRA ===== */
+    .extra-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .extra-stat {
+      font-size: 0.82rem;
+      color: #b0b8cc;
+    }
+    .extra-stat strong {
+      color: #e0e4ee;
+      font-weight: 500;
+    }
+    .extra-stat-label {
+      display: block;
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-bottom: 0.1rem;
+    }
+
+    /* ===== FOOTER ===== */
+    .site-footer {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 2rem 1rem;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .footer-links a { color: #8a92a8; font-size: 0.82rem; }
+    .footer-copy { text-align: center; font-size: 0.75rem; }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #533afd;
+      color: #fff;
+      padding: 0.65rem 1.5rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 400;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== SIDEBAR NAV ===== */
+    .sidebar-nav {
+      margin-top: 1rem;
+    }
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 12px;
+      color: #9aa0b5;
+      font-size: 0.88rem;
+      transition: background 0.15s;
+    }
+    .sidebar-nav a:hover {
+      background: rgba(255,255,255,0.05);
+      text-decoration: none;
+    }
+    .sidebar-nav a svg { width: 18px; height: 18px; }
+    .sidebar-nav .nav-active {
+      background: rgba(83,58,253,0.15);
+      color: #b8b0ff;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 399px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+      .stat-card { padding: 0.6rem; }
+      .stat-value { font-size: 1.1rem; }
+      .extra-stats { grid-template-columns: 1fr; }
+      .char-limit-bar { font-size: 0.7rem; }
+    }
+    @media (min-width: 400px) and (max-width: 599px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+  <!-- Google Analytics placeholder -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DSGL4BJH4R"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DSGL4BJH4R');
+  </script>
+</head>
+<body>
+  <!-- HERO -->
+  <section class="hero">
+    <h1>글자수 세기</h1>
+    <p>실시간으로 글자수, 단어수, 문장수를 확인하세요. 네이버 블로그, 인스타그램, 트위터 등 각 플랫폼의 글자수 제한을 한눈에 확인할 수 있습니다.</p>
+  </section>
+
+  <!-- HEADER AD -->
+  <div class="container" style="padding-top:0.5rem">
+    <div class="ad-placeholder ad-header">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+      <span style="margin-left:0.4rem">광고</span>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="container">
+    <div class="layout">
+      <!-- TOOL -->
+      <main class="tool-card">
+        <!-- Char limits bar -->
+        <div class="char-limit-bar" id="charLimits">
+          <span class="char-limit-item">
+            <span class="char-limit-dot" style="background:#8b5cf6"></span>
+            네이버 블로그: <span id="naverLimit">0</span>/5000
+          </span>
+          <span class="char-limit-item">
+            <span class="char-limit-dot" style="background:#e1306c"></span>
+            인스타그램: <span id="instaLimit">0</span>/2200
+          </span>
+          <span class="char-limit-item">
+            <span class="char-limit-dot" style="background:#1da1f2"></span>
+            트위터: <span id="twitterLimit">0</span>/280
+          </span>
+          <span class="char-limit-item">
+            <span class="char-limit-dot" style="background:#34d399"></span>
+            SMS: <span id="smsLimit">0</span>/80
+          </span>
+        </div>
+
+        <!-- TEXTAREA -->
+        <div class="textarea-wrapper">
+          <textarea class="tool-textarea" id="textInput" placeholder="여기에 텍스트를 입력하세요..." rows="8"></textarea>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-value" id="charWithSpace">0</div>
+            <div class="stat-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+              공백 포함
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="charNoSpace">0</div>
+            <div class="stat-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+              공백 제외
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="wordCount">0</div>
+            <div class="stat-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              단어
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="sentenceCount">0</div>
+            <div class="stat-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              문장
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="paraCount">0</div>
+            <div class="stat-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18"/><path d="M21 9H3"/><path d="M21 15H3"/><path d="M21 21H3"/></svg>
+              문단
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="readTime">0초</div>
+            <div class="stat-label">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              읽기 시간
+            </div>
+          </div>
+        </div>
+
+        <!-- CASE CONVERTER -->
+        <div class="case-converter" id="caseConverter">
+          <button class="case-btn" data-case="upper">대문자</button>
+          <button class="case-btn" data-case="lower">소문자</button>
+          <button class="case-btn" data-case="title">제목 케이스</button>
+          <button class="case-btn" data-case="capitalize">문장 케이스</button>
+        </div>
+
+        <!-- ACTION ROW -->
+        <div class="action-row">
+          <button class="btn btn-primary" id="copyBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            복사하기
+          </button>
+          <button class="btn btn-secondary" id="clearBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            지우기
+          </button>
+        </div>
+
+        <!-- EXTRA STATS -->
+        <div class="extra-stats" id="extraStats">
+          <div class="extra-stat"><span class="extra-stat-label">가장 긴 단어</span><strong id="longestWord">-</strong></div>
+          <div class="extra-stat"><span class="extra-stat-label">가장 많이 사용된 문자</span><strong id="mostUsedChar">-</strong></div>
+          <div class="extra-stat"><span class="extra-stat-label">한글 글자수</span><strong id="koreanCount">0</strong></div>
+          <div class="extra-stat"><span class="extra-stat-label">영문 글자수</span><strong id="englishCount">0</strong></div>
+          <div class="extra-stat"><span class="extra-stat-label">숫자 개수</span><strong id="digitCount">0</strong></div>
+          <div class="extra-stat"><span class="extra-stat-label">공백 개수</span><strong id="spaceCount">0</strong></div>
+        </div>
+      </main>
+
+      <!-- SIDEBAR -->
+      <aside>
+        <!-- AD -->
+        <div class="ad-placeholder ad-sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <span style="margin-left:0.4rem">광고</span>
+        </div>
+
+        <!-- NAV -->
+        <nav class="sidebar-nav">
+          <a href="index.html" class="nav-active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            글자수 세기
+          </a>
+          <a href="how-to.html">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            사용 방법
+          </a>
+          <a href="faq.html">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            FAQ
+          </a>
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            개인정보처리방침
+          </a>
+          <a href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            문의하기
+          </a>
+        </nav>
+      </aside>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="index.html">글자수 세기</a>
+      <a href="how-to.html">사용 방법</a>
+      <a href="faq.html">FAQ</a>
+      <a href="#">개인정보처리방침</a>
+      <a href="#">문의하기</a>
+    </div>
+    <div class="footer-copy">&copy; 2024 글자수세기. All rights reserved.</div>
+  </footer>
+
+  <script>
+    (function() {
+      const textarea = document.getElementById('textInput');
+      if (!textarea) return;
+
+      // DOM refs
+      const charWS = document.getElementById('charWithSpace');
+      const charNS = document.getElementById('charNoSpace');
+      const wordEl = document.getElementById('wordCount');
+      const sentEl = document.getElementById('sentenceCount');
+      const paraEl = document.getElementById('paraCount');
+      const readEl = document.getElementById('readTime');
+      const longestEl = document.getElementById('longestWord');
+      const mostCharEl = document.getElementById('mostUsedChar');
+      const koreanEl = document.getElementById('koreanCount');
+      const englishEl = document.getElementById('englishCount');
+      const digitEl = document.getElementById('digitCount');
+      const spaceEl = document.getElementById('spaceCount');
+      const naverEl = document.getElementById('naverLimit');
+      const instaEl = document.getElementById('instaLimit');
+      const twitEl = document.getElementById('twitterLimit');
+      const smsEl = document.getElementById('smsLimit');
+      const toast = document.getElementById('toast');
+      const copyBtn = document.getElementById('copyBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const caseBtns = document.querySelectorAll('.case-btn');
+
+      function showToast(msg) {
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      }
+
+      function updateStats() {
+        const text = textarea.value;
+        const len = text.length;
+        const noSpace = text.replace(/\s/g, '').length;
+        const spaces = (text.match(/\s/g) || []).length;
+
+        // Char counts
+        charWS.textContent = len;
+        charNS.textContent = noSpace;
+        spaceEl.textContent = spaces;
+
+        // Char limits
+        naverEl.textContent = len;
+        instaEl.textContent = len;
+        twitEl.textContent = len;
+        smsEl.textContent = len;
+
+        [naverEl, instaEl, twitEl, smsEl].forEach(el => {
+          const parent = el.closest('.char-limit-item');
+          if (!parent) return;
+          const limitText = parent.textContent || '';
+          const match = limitText.match(/\/(\d+)/);
+          const limit = match ? parseInt(match[1], 10) : Infinity;
+          const val = parseInt(el.textContent, 10);
+          el.style.color = val > limit ? '#ef4444' : '#8a92a8';
+        });
+
+        // Words
+        const trimmed = text.trim();
+        const words = trimmed ? trimmed.split(/\s+/).filter(w => w.length > 0) : [];
+        wordEl.textContent = words.length;
+
+        // Sentences
+        const sents = trimmed ? (trimmed.match(/[.!?…]+/g) || []).length : 0;
+        // Also count sentences that end without punctuation (last sentence)
+        const hasContent = trimmed.length > 0;
+        sentEl.textContent = sents + (hasContent && !trimmed.match(/[.!?…]$/) ? 1 : 0);
+
+        // Paragraphs
+        const paras = trimmed ? trimmed.split(/\n\s*\n/).filter(p => p.trim().length > 0).length : 0;
+        paraEl.textContent = paras || (trimmed.length > 0 ? 1 : 0);
+
+        // Reading time
+        const koreanChars = (text.match(/[\uac00-\ud7af\u1100-\u11ff\u3130-\u318f\uA960-\uA97F\uD7B0-\uD7FF]/g) || []).length;
+        const englishWords = words.filter(w => /[a-zA-Z]/.test(w)).length;
+        const koTime = koreanChars / 500 * 60;
+        const enTime = englishWords / 200 * 60;
+        const totalSec = Math.max(koTime, enTime);
+        if (totalSec < 1) {
+          readEl.textContent = '0초';
+        } else if (totalSec < 60) {
+          readEl.textContent = Math.ceil(totalSec) + '초';
+        } else if (totalSec < 3600) {
+          const m = Math.floor(totalSec / 60);
+          const s = Math.round(totalSec % 60);
+          readEl.textContent = m + '분 ' + s + '초';
+        } else {
+          const h = Math.floor(totalSec / 3600);
+          const m = Math.floor((totalSec % 3600) / 60);
+          readEl.textContent = h + '시간 ' + m + '분';
+        }
+
+        // Longest word
+        if (words.length > 0) {
+          const longest = words.reduce((a, b) => a.length >= b.length ? a : b);
+          longestEl.textContent = longest;
+        } else {
+          longestEl.textContent = '-';
+        }
+
+        // Most used character (excluding spaces)
+        const charCounts = {};
+        for (const ch of noSpace > 0 ? text.replace(/\s/g, '') : text) {
+          charCounts[ch] = (charCounts[ch] || 0) + 1;
+        }
+        let maxChar = '-';
+        let maxCount = 0;
+        for (const [ch, count] of Object.entries(charCounts)) {
+          if (count > maxCount) {
+            maxCount = count;
+            maxChar = ch;
+          }
+        }
+        mostCharEl.textContent = maxChar !== '-' ? `'${maxChar}' (${maxCount}회)` : '-';
+
+        // Korean chars
+        koreanEl.textContent = koreanChars;
+
+        // English chars
+        const englishChars = (text.match(/[a-zA-Z]/g) || []).length;
+        englishEl.textContent = englishChars;
+
+        // Digits
+        const digits = (text.match(/[0-9]/g) || []).length;
+        digitEl.textContent = digits;
+      }
+
+      // Case conversion
+      function applyCase(type) {
+        const text = textarea.value;
+        let result;
+        switch (type) {
+          case 'upper': result = text.toUpperCase(); break;
+          case 'lower': result = text.toLowerCase(); break;
+          case 'title': result = text.replace(/\b\w/g, c => c.toUpperCase()); break;
+          case 'capitalize': {
+            result = text.replace(/(^|\.\s+|\!\s+|\?\s+|\…\s*)(\w)/g, (_, a, b) => a + b.toUpperCase());
+            break;
+          }
+          default: return;
+        }
+        textarea.value = result;
+        updateStats();
+        showToast('변환 완료');
+      }
+
+      // Events
+      textarea.addEventListener('input', updateStats);
+
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(textarea.value);
+          showToast('클립보드에 복사되었습니다');
+        } catch {
+          // Fallback
+          textarea.select();
+          document.execCommand('copy');
+          showToast('클립보드에 복사되었습니다');
+        }
+      });
+
+      clearBtn.addEventListener('click', () => {
+        textarea.value = '';
+        updateStats();
+        textarea.focus();
+      });
+
+      caseBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          caseBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          applyCase(btn.dataset.case);
+        });
+      });
+
+      // Init
+      updateStats();
+    })();
+  </script>
+</body>
+</html>
