@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" id="htmlRoot">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -446,6 +446,12 @@
     /* Page background tint */
     .page { background: var(--bg); }
     .page-tool { background: var(--bg); }
+
+    /* Language Switcher */
+    .lang-switcher { position: fixed; top: 16px; right: 16px; display: flex; align-items: center; gap: 4px; z-index: 100; }
+    .lang-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: var(--radius-md); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .lang-btn:hover { color: var(--fg); border-color: var(--fg); }
+    .lang-btn.active { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
   </style>
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DSGL4BJH4R"></script>
@@ -458,13 +464,19 @@
 </head>
 <body>
 
+  <!-- Language Switcher -->
+  <div class="lang-switcher">
+    <button type="button" class="lang-btn active" data-lang="ko">KO</button>
+    <button type="button" class="lang-btn" data-lang="en">EN</button>
+  </div>
+
   <!-- ===== HERO ===== -->
   <section>
     <div class="container" style="text-align: center;">
       <div class="stack" style="max-width: 600px; margin-inline: auto;">
         <p class="eyebrow">Text Counter</p>
-        <h1>글자수 세기</h1>
-        <p class="lead">실시간으로 글자수, 단어수, 문장수를 확인하세요. 네이버 블로그, 인스타그램, 트위터 등 각 플랫폼의 글자수 제한을 한눈에 확인할 수 있습니다.</p>
+        <h1 data-i18n="hero.title">글자수 세기</h1>
+        <p class="lead" data-i18n="hero.desc">실시간으로 글자수, 단어수, 문장수를 확인하세요. 네이버 블로그, 인스타그램, 트위터 등 각 플랫폼의 글자수 제한을 한눈에 확인할 수 있습니다.</p>
       </div>
     </div>
   </section>
@@ -515,27 +527,27 @@
             <div class="metric-grid" id="statsGrid">
               <div class="metric">
                 <strong id="charWithSpace">0</strong>
-                <span>공백 포함</span>
+                <span data-i18n="stat.withSpace">공백 포함</span>
               </div>
               <div class="metric">
                 <strong id="charNoSpace">0</strong>
-                <span>공백 제외</span>
+                <span data-i18n="stat.noSpace">공백 제외</span>
               </div>
               <div class="metric">
                 <strong id="wordCount">0</strong>
-                <span>단어</span>
+                <span data-i18n="stat.words">단어</span>
               </div>
               <div class="metric">
                 <strong id="sentenceCount">0</strong>
-                <span>문장</span>
+                <span data-i18n="stat.sentences">문장</span>
               </div>
               <div class="metric">
                 <strong id="paraCount">0</strong>
-                <span>문단</span>
+                <span data-i18n="stat.paragraphs">문단</span>
               </div>
               <div class="metric">
                 <strong id="readTime">0초</strong>
-                <span>읽기 시간</span>
+                <span data-i18n="stat.readTime">읽기 시간</span>
               </div>
             </div>
 
@@ -569,21 +581,21 @@
 
             <!-- Case converter -->
             <div class="case-row" id="caseConverter">
-              <button class="case-btn" data-case="upper">대문자</button>
-              <button class="case-btn" data-case="lower">소문자</button>
-              <button class="case-btn" data-case="title">제목 케이스</button>
-              <button class="case-btn" data-case="capitalize">문장 케이스</button>
+              <button class="case-btn" data-case="upper" data-i18n="case.upper">대문자</button>
+              <button class="case-btn" data-case="lower" data-i18n="case.lower">소문자</button>
+              <button class="case-btn" data-case="title" data-i18n="case.title">제목 케이스</button>
+              <button class="case-btn" data-case="capitalize" data-i18n="case.sentence">문장 케이스</button>
             </div>
 
             <!-- Action buttons -->
             <div class="action-row">
               <button class="btn btn-primary" id="copyBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                복사하기
+                <span data-i18n="btn.copy">복사하기</span>
               </button>
               <button class="btn btn-secondary" id="clearBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                지우기
+                <span data-i18n="btn.clear">지우기</span>
               </button>
             </div>
 
@@ -601,15 +613,15 @@
 
           <!-- Nav -->
           <nav class="nav-section">
-            <p class="nav-section-title">도구</p>
+            <p class="nav-section-title" data-i18n="nav.tools">도구</p>
             <ul class="nav-list">
               <li><a href="index.html" class="nav-active">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                글자수 세기
+                <span data-i18n="nav.counter">글자수 세기</span>
               </a></li>
               <li><a href="how-to.html">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                사용 방법
+                <span data-i18n="nav.howTo">사용 방법</span>
               </a></li>
               <li><a href="faq.html">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -617,11 +629,11 @@
               </a></li>
               <li><a href="#">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                개인정보처리방침
+                <span data-i18n="nav.privacy">개인정보처리방침</span>
               </a></li>
               <li><a href="#">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                문의하기
+                <span data-i18n="nav.contact">문의하기</span>
               </a></li>
             </ul>
           </nav>
@@ -837,6 +849,98 @@
       // Init
       updateStats();
     })();
+
+    // ===== Internationalization =====
+    const i18n = {
+      ko: {
+        'hero.title': '글자수 세기',
+        'hero.desc': '실시간으로 글자수, 단어수, 문장수를 확인하세요. 네이버 블로그, 인스타그램, 트위터 등 각 플랫폼의 글자수 제한을 한눈에 확인할 수 있습니다.',
+        'stat.withSpace': '공백 포함',
+        'stat.noSpace': '공백 제외',
+        'stat.words': '단어',
+        'stat.sentences': '문장',
+        'stat.paragraphs': '문단',
+        'stat.readTime': '읽기 시간',
+        'case.upper': '대문자',
+        'case.lower': '소문자',
+        'case.title': '제목 케이스',
+        'case.sentence': '문장 케이스',
+        'btn.copy': '복사하기',
+        'btn.clear': '지우기',
+        'nav.tools': '도구',
+        'nav.counter': '글자수 세기',
+        'nav.howTo': '사용 방법',
+        'nav.privacy': '개인정보처리방침',
+        'nav.contact': '문의하기',
+        'placeholder': '여기에 텍스트를 입력하세요...',
+        'msg.copied': '클립보드에 복사되었습니다',
+        'msg.converted': '변환 완료',
+        'time.sec': '초',
+        'time.min': '분',
+        'time.hour': '시간'
+      },
+      en: {
+        'hero.title': 'Character Counter',
+        'hero.desc': 'Count characters, words, and sentences in real-time. Check character limits for Naver Blog, Instagram, Twitter, and more at a glance.',
+        'stat.withSpace': 'With Spaces',
+        'stat.noSpace': 'No Spaces',
+        'stat.words': 'Words',
+        'stat.sentences': 'Sentences',
+        'stat.paragraphs': 'Paragraphs',
+        'stat.readTime': 'Read Time',
+        'case.upper': 'UPPERCASE',
+        'case.lower': 'lowercase',
+        'case.title': 'Title Case',
+        'case.sentence': 'Sentence case',
+        'btn.copy': 'Copy',
+        'btn.clear': 'Clear',
+        'nav.tools': 'Tools',
+        'nav.counter': 'Character Counter',
+        'nav.howTo': 'How to Use',
+        'nav.privacy': 'Privacy Policy',
+        'nav.contact': 'Contact',
+        'placeholder': 'Enter your text here...',
+        'msg.copied': 'Copied to clipboard',
+        'msg.converted': 'Converted',
+        'time.sec': 's',
+        'time.min': 'm',
+        'time.hour': 'h'
+      }
+    };
+
+    let currentLang = localStorage.getItem('lang') || 'ko';
+
+    function t(key) {
+      return (i18n[currentLang] && i18n[currentLang][key]) || key;
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('lang', lang);
+      document.getElementById('htmlRoot').setAttribute('lang', lang);
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (i18n[lang] && i18n[lang][key]) {
+          el.textContent = i18n[lang][key];
+        }
+      });
+
+      const textInput = document.getElementById('textInput');
+      if (textInput) {
+        textInput.placeholder = t('placeholder');
+      }
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+    });
+
+    setLanguage(currentLang);
   </script>
 
 </body>
